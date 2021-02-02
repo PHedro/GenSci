@@ -1,3 +1,4 @@
+from bisect import bisect
 from xml.etree import cElementTree as ET
 
 from django.db.models import (
@@ -16,7 +17,7 @@ from patient_data.constants import (
     END,
     SAMPLE,
     PATIENT_ID,
-    TEST_TUBE,
+    TEST_TUBE, POSITION, PLATE_LABELS, COLUMNS, ROWS,
 )
 
 
@@ -82,6 +83,7 @@ class DNASample(Model):
     )
     barcode = CharField(max_length=255, null=False, blank=False, db_index=True)
     well_plate = PositiveIntegerField(null=False, blank=False, db_index=True)
+    position = CharField(max_length=4, null=False, blank=False, db_index=True)
 
     class Meta:
         verbose_name = "DNA Sample"
@@ -101,13 +103,31 @@ class DNASample(Model):
         sample.update({"patient_id": patient.id})
         cls.objects.create(**sample)
 
-    @staticmethod
-    def iter_sample(data):
+    @classmethod
+    def iter_sample(cls, data):
         for row in data:
             patient_id, barcode, well_plate = row.split(b",")
             if patient_id != b"patientID":
+                barcode = int(barcode)
+                well_plate = int(well_plate)
                 yield {
                     IDENTIFIER: patient_id.decode("utf-8"),
-                    BARCODE: int(barcode),
+                    BARCODE: barcode,
                     WELL_PLATE: well_plate,
+                    POSITION: cls.get_position(well_plate),
                 }
+
+    @staticmethod
+    def get_position(slot):
+        column = slot % COLUMNS
+        column = column if column else COLUMNS
+
+        label_to_find = slot/COLUMNS
+        if not slot % COLUMNS:
+            # as bisect identify in between values than we make a little change
+            # when we have the last of each interval as we want it included
+            label_to_find -= .01
+        label_index = bisect(range(1, ROWS+1), label_to_find)
+        row = PLATE_LABELS[label_index]
+
+        return f"{row}:{column}"
