@@ -37,12 +37,22 @@ class Patient(Model):
 
     @property
     def bloodsamples(self):
+        """
+        Give us a convenient way to display the identification from all
+        the blood samples from the user.
+        :return: BLOOD02368, BLOOD02367
+        """
         return ", ".join(
             self.bloodsample_set.all().values_list("test_tube", flat=True)
         )
 
     @property
     def dnasamples(self):
+        """
+        Give us a convenient way to display the identification from all
+        the DNA samples from the user.
+        :return: 65848, 65847
+        """
         return ", ".join(
             self.dnasample_set.all().values_list("barcode", flat=True)
         )
@@ -69,6 +79,16 @@ class BloodSample(Model):
 
     @classmethod
     def iter_sample(cls, data):
+        """
+        Generator to read the elements from the given file.
+        And extracts teh desired data.
+
+        :param data: uploaded / opened file
+        :return: {
+            "identifier": "ID001",
+            "test_tube": "BLOOD09288",
+        }
+        """
         for sample in cls.iter_samples_elements(data):
             patient_id = sample.find(PATIENT_ID).text
             test_tube = sample.find(BARCODE).text
@@ -113,21 +133,52 @@ class DNASample(Model):
 
     @classmethod
     def persist_sample(cls, sample):
+        """
+        Given a dict with the sample data, retrieves or create the
+        related patient instance and enhances the DNASample data with it.
+
+        :param sample: {
+            "identifier": "ID001",
+            "barcode": "65848",
+            "well_plate": 1,
+            "position": "A:1",
+        }
+        :return: DNASample, boolean
+        """
+
         patient, _ = Patient.objects.get_or_create(
             identifier=sample[IDENTIFIER]
         )
         sample.update({"patient_id": patient.id})
-        cls.objects.create(**sample)
+        return cls.objects.create(**sample)
 
     @classmethod
     def iter_sample(cls, data):
+        """
+        Read the rows from the given file, ignoring the row that contains the
+        headers.
+        Them splits each row to get the data desired.
+
+        :param data: uploaded / opened file
+        :return: {
+            "identifier": "ID001",
+            "barcode": "65848",
+            "well_plate": 1,
+            "position": "A:1",
+        }
+        """
         for row in data:
-            patient_id, barcode, well_plate = row.split(b",")
-            if patient_id != b"patientID":
+            separator = b"," if isinstance(row, bytes) else ","
+            patient_id, barcode, well_plate = row.split(separator)
+            # as direct call with open and upload give us respectively
+            # str and byte intances
+            if patient_id not in {b"patientID", "patientID"}:
                 barcode = int(barcode)
                 well_plate = int(well_plate)
+                if isinstance(patient_id, bytes):
+                    patient_id = patient_id.decode("utf-8")
                 yield {
-                    IDENTIFIER: patient_id.decode("utf-8"),
+                    IDENTIFIER: patient_id,
                     BARCODE: barcode,
                     WELL_PLATE: well_plate,
                     POSITION: cls.get_position(well_plate),
@@ -135,6 +186,13 @@ class DNASample(Model):
 
     @staticmethod
     def get_position(slot):
+        """
+        Converts integer to coordinates
+
+        :param slot: 96
+        :return: 'H:12'
+        """
+
         column = slot % COLUMNS
         column = column if column else COLUMNS
 
