@@ -14,7 +14,7 @@ PARSERS = {
 class UploadFile(FormView):
     template_name = "upload.html"
     form_class = UploadForm
-    success_url = "/upload"
+    success_url = "/patients"
 
     def form_valid(self, form):
         uploaded_file = form.cleaned_data["file"]
