@@ -41,7 +41,7 @@ class PatientList(ListView):
     @never_cache
     def get(self, request, *args, **kwargs):
         data_filter = DataFilter(request.GET, queryset=self.get_queryset())
-        self.object_list = data_filter.qs
+        setattr(self, "object_list", data_filter.qs)
         context = self.get_context_data()
         context.update({"filter": data_filter})
         return self.render_to_response(context)
