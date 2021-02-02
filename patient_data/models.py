@@ -9,7 +9,7 @@ from django.db.models import (
 
 class Patient(Model):
     identifier = CharField(
-        max_length=255, null=False, blank=False, db_index=True
+        max_length=255, null=False, blank=False, db_index=True, unique=True
     )
 
     class Meta:
@@ -19,7 +19,10 @@ class Patient(Model):
 
 
 class BloodSample(Model):
-    patient = ForeignKey("Patient", null=False, blank=False, on_delete=PROTECT)
+    patient = ForeignKey("Patient", null=True, blank=True, on_delete=PROTECT)
+    identifier = CharField(
+        max_length=255, null=False, blank=False, db_index=True
+    )
     test_tube = CharField(
         max_length=255, null=False, blank=False, db_index=True
     )
@@ -32,6 +35,9 @@ class BloodSample(Model):
 
 class DNASample(Model):
     patient = ForeignKey("Patient", null=False, blank=False, on_delete=PROTECT)
+    identifier = CharField(
+        max_length=255, null=False, blank=False, db_index=True
+    )
     barcode = CharField(max_length=255, null=False, blank=False, db_index=True)
     well_plate = PositiveIntegerField(null=False, blank=False, db_index=True)
 
