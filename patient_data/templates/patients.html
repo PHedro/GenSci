@@ -1,0 +1,38 @@
+{% load static %}
+
+{% block content %}
+    <table style="width:50%">
+        <tr>
+            <th>Patient Identifier</th>
+            <th>DNA Samples</th>
+            <th>Blood Samples</th>
+        </tr>
+        {% for patient in patients_list %}
+            <tr>
+                <td><a target="_blank" href="{% url 'patients-detail' pk=patient.pk %}">{{ patient.identifier }}</a></td>
+                <td>{{ patient.dnasamples }}</td>
+                <td>{{ patient.bloodsamples }}</td>
+            </tr>
+        {% endfor %}
+
+        <tfoot>
+        <tr>
+            <td>
+                <span class="paginator">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    {% endif %}
+
+                    <span class="paginator-current">
+                        {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                    {% endif %}
+                </span>
+            </td>
+        </tr>
+        </tfoot>
+    </table>
+{% endblock %}

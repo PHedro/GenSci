@@ -1,0 +1,28 @@
+{% load static %}
+
+{% block content %}
+    <table style="width:50%">
+        <tr>
+            <td>Patient Identifier</td>
+            <td>{{ patient.identifier }}</td>
+        </tr>
+        <tr><td colspan="2">DNA Samples</td></tr>
+        {% for sample in patient.dnasample_set.all %}
+            <tr>
+                <td>Barcode</td>
+                <td>{{ sample.barcode }}</td>
+            </tr>
+            <tr>
+                <td>Well plate</td>
+                <td>{{ sample.well_plate }} | {{ sample.position }}</td>
+            </tr>
+        {% endfor %}
+        <tr><td colspan="2">Blood Samples</td></tr>
+        {% for sample in patient.bloodsample_set.all %}
+            <tr>
+                <td>Test Tube</td>
+                <td>{{ sample.test_tube }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

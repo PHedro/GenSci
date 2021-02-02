@@ -17,7 +17,11 @@ from patient_data.constants import (
     END,
     SAMPLE,
     PATIENT_ID,
-    TEST_TUBE, POSITION, PLATE_LABELS, COLUMNS, ROWS,
+    TEST_TUBE,
+    POSITION,
+    PLATE_LABELS,
+    COLUMNS,
+    ROWS,
 )
 
 
@@ -30,6 +34,18 @@ class Patient(Model):
         verbose_name = "Patient"
         verbose_name_plural = "Patients"
         ordering = ("identifier",)
+
+    @property
+    def bloodsamples(self):
+        return ", ".join(
+            self.bloodsample_set.all().values_list("test_tube", flat=True)
+        )
+
+    @property
+    def dnasamples(self):
+        return ", ".join(
+            self.dnasample_set.all().values_list("barcode", flat=True)
+        )
 
 
 class BloodSample(Model):
@@ -122,12 +138,12 @@ class DNASample(Model):
         column = slot % COLUMNS
         column = column if column else COLUMNS
 
-        label_to_find = slot/COLUMNS
+        label_to_find = slot / COLUMNS
         if not slot % COLUMNS:
             # as bisect identify in between values than we make a little change
             # when we have the last of each interval as we want it included
-            label_to_find -= .01
-        label_index = bisect(range(1, ROWS+1), label_to_find)
+            label_to_find -= 0.01
+        label_index = bisect(range(1, ROWS + 1), label_to_find)
         row = PLATE_LABELS[label_index]
 
         return f"{row}:{column}"

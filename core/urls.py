@@ -17,9 +17,11 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.urls import path
 
-from patient_data.views import UploadFile
+from patient_data.views import UploadFile, PatientList, PatientDetail
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     url(r"^upload/$", UploadFile.as_view(), name="upload-view"),
+    url(r"^patients/$", PatientList.as_view(), name="patients-list"),
+    url(r"^patients/(?P<pk>[0-9]+)/$", PatientDetail.as_view(), name="patients-detail"),
 ]
