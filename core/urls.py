@@ -23,5 +23,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     url(r"^upload/$", UploadFile.as_view(), name="upload-view"),
     url(r"^$", PatientList.as_view(), name="patients-list"),
-    url(r"^patients/(?P<pk>[0-9]+)/$", PatientDetail.as_view(), name="patients-detail"),
+    url(
+        r"^patients/(?P<pk>[0-9]+)/$",
+        PatientDetail.as_view(),
+        name="patients-detail",
+    ),
 ]

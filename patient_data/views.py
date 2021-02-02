@@ -1,8 +1,9 @@
 from django.http import HttpResponseRedirect
+from django.views.decorators.cache import never_cache
 from django.views.generic import FormView, ListView, DetailView
 
 from patient_data.constants import XML_CONTENT_TYPE, CSV_CONTENT_TYPE
-from patient_data.forms import UploadForm
+from patient_data.forms import UploadForm, DataFilter
 from patient_data.models import BloodSample, DNASample, Patient
 
 PARSERS = {
@@ -36,6 +37,14 @@ class PatientList(ListView):
         .prefetch_related("dnasample_set", "bloodsample_set")
     )
     template_name = "patients.html"
+
+    @never_cache
+    def get(self, request, *args, **kwargs):
+        data_filter = DataFilter(request.GET, queryset=self.get_queryset())
+        self.object_list = data_filter.qs
+        context = self.get_context_data()
+        context.update({"filter": data_filter})
+        return self.render_to_response(context)
 
 
 class PatientDetail(DetailView):
